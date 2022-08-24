@@ -10,8 +10,8 @@ import ru.practicum.shareit.user.UserRepository;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,17 +22,17 @@ public class ItemServiceImp implements ItemService {
     private final UserRepository userRepository;
 
     @Override
-    public ItemDto create(Long userId, ItemDto itemDto) {
+    public Item create(Long userId, ItemDto itemDto) {
         User user = userRepository.getById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
         Item item = conversionService.convert(itemDto, Item.class);
         assert item != null;
         item.setOwner(user);
-        return conversionService.convert(itemRepository.create(item), ItemDto.class);
+        return itemRepository.create(item);
     }
 
     @Override
-    public ItemDto update(Long userId, long itemId, ItemDto itemDto) {
+    public Item update(Long userId, long itemId, ItemDto itemDto) {
         Item item = itemRepository.getById(itemId)
                 .orElseThrow(() -> new NotFoundException(String.format("Предмет № %d не найден", itemId)));
         if (!Objects.equals(item.getOwner().getId(), userId)) {
@@ -47,7 +47,7 @@ public class ItemServiceImp implements ItemService {
         if (itemDto.getAvailable() != null) {
             item.setAvailable(itemDto.getAvailable());
         }
-        return conversionService.convert(itemRepository.update(item), ItemDto.class);
+        return itemRepository.update(item);
     }
 
     @Override
@@ -56,27 +56,21 @@ public class ItemServiceImp implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getItems(long userId) {
-        return itemRepository.getItems(userId).stream()
-                .map(item -> conversionService.convert(item, ItemDto.class))
-                .collect(Collectors.toList());
+    public Collection<Item> getItems(long userId) {
+        return List.copyOf(itemRepository.getItems(userId));
     }
 
     @Override
-    public ItemDto getById(long itemId) {
+    public Item getById(long itemId) {
         return itemRepository.getById(itemId)
-                .map(i -> conversionService.convert(i, ItemDto.class))
                 .orElseThrow(() -> new NotFoundException(String.format("Предмет № %d не найден", itemId)));
     }
 
     @Override
-    public Collection<ItemDto> searchItems(String text) {
+    public Collection<Item> searchItems(String text) {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        return itemRepository.searchItems(text.toLowerCase())
-                .stream()
-                .map(item -> conversionService.convert(item, ItemDto.class))
-                .collect(Collectors.toList());
+        return List.copyOf(itemRepository.searchItems(text.toLowerCase()));
     }
 }

@@ -8,8 +8,8 @@ import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,21 +19,20 @@ public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDto getById(long userId) {
+    public User getById(long userId) {
         return userRepository.getById(userId)
-                .map(u -> conversionService.convert(u, UserDto.class))
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
     }
 
     @Override
-    public UserDto create(UserDto userDto) {
+    public User create(UserDto userDto) {
         isExistEmail(userDto.getEmail());
         User user = conversionService.convert(userDto, User.class);
-        return conversionService.convert(userRepository.create(user), UserDto.class);
+        return userRepository.create(user);
     }
 
     @Override
-    public UserDto update(Long userId, UserDto userDto) {
+    public User update(Long userId, UserDto userDto) {
         User user = userRepository.getById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
         if (userDto.getEmail() != null) {
@@ -43,7 +42,7 @@ public class UserServiceImp implements UserService {
         if (userDto.getName() != null) {
             user.setName(userDto.getName());
         }
-        return conversionService.convert(userRepository.update(user), UserDto.class);
+        return userRepository.update(user);
     }
 
     @Override
@@ -52,10 +51,8 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public Collection<UserDto> getAllUsers() {
-        return userRepository.getAllUsers().stream()
-                .map(u -> conversionService.convert(u, UserDto.class))
-                .collect(Collectors.toList());
+    public Collection<User> getAllUsers() {
+        return List.copyOf(userRepository.getAllUsers());
     }
 
     private void isExistEmail(String email) {
