@@ -4,32 +4,31 @@ import lombok.*;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
-@Table(name = "items")
+@Table(name = "comments")
 @Data
 @Entity
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
-public class Item {
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "item_id")
+    @Column(name = "comment_id")
     private Long id;
 
-    @Size(max = 1000)
     @Column(nullable = false)
-    private String name;
+    private String text;
 
     @ManyToOne
-    @JoinColumn(name = "owner_id")
-    private User owner;
+    @JoinColumn(name = "item_id")
+    private Item item;
+
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private User author;
 
     @Column(nullable = false)
-    private Boolean available;
-
-    @Size(max = 4000)
-    @Column(nullable = false)
-    private String description;
+    private LocalDateTime created;
 }

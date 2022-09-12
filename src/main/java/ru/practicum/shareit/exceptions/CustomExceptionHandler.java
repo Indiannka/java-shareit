@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+
     @ExceptionHandler(ValidationException.class)
     public final ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex, WebRequest request) {
         List<String> details = new ArrayList<>();
@@ -36,13 +38,40 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(EmailExistsException.class)
-    public final ResponseEntity<ErrorResponse> handleValidationException(EmailExistsException ex, WebRequest request) {
+    @ExceptionHandler(StateValidationException.class)
+    public final ResponseEntity<ErrorResponse> handleStateValidationException(StateValidationException ex, WebRequest request) {
         List<String> details = new ArrayList<>();
         details.add(ex.getLocalizedMessage());
-        ErrorResponse error = new ErrorResponse("Duplicate email", details);
+        ErrorResponse error = new ErrorResponse("Unknown state: UNSUPPORTED_STATUS", details);
         log.info(error.getDetails().toString());
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public final ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
+        List<String> details = new ArrayList<>();
+        details.add(ex.getLocalizedMessage());
+        ErrorResponse error = new ErrorResponse("Constraint validation error", details);
+        log.info(error.getDetails().toString());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NotAvailableException.class)
+    public final ResponseEntity<ErrorResponse> handleNotAvailableException(NotAvailableException ex, WebRequest request) {
+        List<String> details = new ArrayList<>();
+        details.add(ex.getLocalizedMessage());
+        ErrorResponse error = new ErrorResponse("Item is not available", details);
+        log.info(error.getDetails().toString());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(StatusProcessException.class)
+    public final ResponseEntity<ErrorResponse> handleStatusProcessException(StatusProcessException ex, WebRequest request) {
+        List<String> details = new ArrayList<>();
+        details.add(ex.getLocalizedMessage());
+        ErrorResponse error = new ErrorResponse("Status has been processed already", details);
+        log.info(error.getDetails().toString());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotFoundException.class)
