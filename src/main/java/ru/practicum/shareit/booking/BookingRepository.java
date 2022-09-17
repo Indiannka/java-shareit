@@ -9,39 +9,39 @@ import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    Optional<Booking> findFirstByBooker_IdAndItem_IdAndStartIsBefore(Long bookerId, Long itemId, LocalDateTime dateTime);
+    Optional<Booking> findFirstByBookerIdAndItemIdAndStartIsBefore(Long bookerId, Long itemId, LocalDateTime dateTime);
 
-    Optional<Booking> findFirstByItem_IdAndStartIsAfterOrderByStartAsc(long itemId, LocalDateTime dateTime);
+    Optional<Booking> findFirstByItemIdAndStartIsAfterOrderByStartAsc(long itemId, LocalDateTime dateTime);
 
-    Optional<Booking> findFirstByItem_IdAndEndIsBeforeOrderByEndDesc(long itemId, LocalDateTime dateTime);
+    Optional<Booking> findFirstByItemIdAndEndIsBeforeOrderByEndDesc(long itemId, LocalDateTime dateTime);
 
-    Collection<Booking> findByBooker_IdOrderByStartDesc(Long bookerId);
+    Collection<Booking> findByBookerIdOrderByStartDesc(Long bookerId);
 
     @Query("select booking from Booking booking" +
             " where booking.booker.id = ?1" +
             " and booking.start <= ?2" +
             " and booking.end >= ?2" +
             " order by booking.start desc")
-    Collection<Booking> findCurrentByBooker_Id(Long bookerId, LocalDateTime now);
+    Collection<Booking> findCurrentByBookerId(Long bookerId, LocalDateTime now);
 
-    Collection<Booking> findByBooker_IdAndStartIsAfterOrderByStartDesc(Long bookerId, LocalDateTime now);
+    Collection<Booking> findByBookerIdAndStartIsAfterOrderByStartDesc(Long bookerId, LocalDateTime now);
 
-    Collection<Booking> findByBooker_IdAndEndIsBeforeOrderByStartDesc(Long bookerId, LocalDateTime now);
+    Collection<Booking> findByBookerIdAndEndIsBeforeOrderByStartDesc(Long bookerId, LocalDateTime now);
 
-    Collection<Booking> findByBooker_IdAndStatusEqualsOrderByStartDesc(Long bookerId, Status status);
+    Collection<Booking> findByBookerIdAndStatusEqualsOrderByStartDesc(Long bookerId, Status status);
 
-    Collection<Booking> findByItem_Owner_IdOrderByStartDesc(Long ownerId);
+    Collection<Booking> findByItemOwnerIdOrderByStartDesc(Long ownerId);
 
     @Query("select booking from Booking booking" +
             " where booking.item.owner.id = ?1" +
             " and booking.start <= ?2" +
             " and booking.end >= ?2" +
             " order by booking.start desc")
-    Collection<Booking> findCurrentBookingsByOwner_Id(Long ownerId, LocalDateTime now);
+    Collection<Booking> findCurrentBookingsByOwnerId(Long ownerId, LocalDateTime now);
 
-    Collection<Booking> findByItem_Owner_IdAndStartIsAfterOrderByStartDesc(Long ownerId, LocalDateTime now);
+    Collection<Booking> findByItemOwnerIdAndStartIsAfterOrderByStartDesc(Long ownerId, LocalDateTime now);
 
-    Collection<Booking> findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(Long ownerId, LocalDateTime now);
+    Collection<Booking> findByItemOwnerIdAndEndIsBeforeOrderByStartDesc(Long ownerId, LocalDateTime now);
 
-    Collection<Booking> findByItem_Owner_IdAndStatusEqualsOrderByStartDesc(Long bookerId, Status status);
+    Collection<Booking> findByItemOwnerIdAndStatusEqualsOrderByStartDesc(Long bookerId, Status status);
 }

@@ -10,7 +10,7 @@ public interface BookingService {
 
     Booking create(Long userId, IncomingBookingDto bookingDto);
 
-    Booking processRequest(Long userId, Long bookingId, Boolean approval);
+    Booking processRequest(Long userId, Long bookingId, boolean approval);
 
     Collection<Booking> getAllByOwner(long userId, String state);
 

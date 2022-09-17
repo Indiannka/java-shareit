@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class CommentDTO {
+public class CommentDto {
     private Long id;
 
     @NotNull(groups = {Create.class})

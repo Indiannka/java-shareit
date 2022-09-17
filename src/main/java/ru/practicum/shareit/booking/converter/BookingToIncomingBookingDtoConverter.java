@@ -1,12 +1,14 @@
 package ru.practicum.shareit.booking.converter;
 
-import org.springframework.core.convert.converter.Converter;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.IncomingBookingDto;
 
-public class BookingToIncomingBookingDto implements Converter<Booking, IncomingBookingDto> {
+@Component
+@AllArgsConstructor
+public class BookingToIncomingBookingDtoConverter {
 
-    @Override
     public IncomingBookingDto convert(Booking booking) {
         return IncomingBookingDto.builder()
                 .id(booking.getId())

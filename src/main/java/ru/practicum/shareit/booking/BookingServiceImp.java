@@ -1,8 +1,8 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.converter.IncomingBookingDtoToBookingConverter;
 import ru.practicum.shareit.booking.dto.IncomingBookingDto;
 import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.Item;
@@ -11,9 +11,12 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+
+import static ru.practicum.shareit.booking.Status.APPROVED;
+import static ru.practicum.shareit.booking.Status.REJECTED;
+import static ru.practicum.shareit.booking.UserType.*;
 
 @Service
 @RequiredArgsConstructor
@@ -22,10 +25,7 @@ public class BookingServiceImp implements BookingService {
     private final UserService userService;
     private final ItemService itemService;
     private final BookingRepository bookingRepository;
-    private final ConversionService conversionService;
-    private static final int OWNER = 1;
-    private static final int BOOKER = 2;
-    private static final int OTHER_USER = 0;
+    private final IncomingBookingDtoToBookingConverter incomingBookingDtoToBookingConverter;
 
     @Override
     public Booking getById(Long bookingId, Long userId) {
@@ -45,8 +45,11 @@ public class BookingServiceImp implements BookingService {
         Item item = itemService.getById(bookingDto.getItemId());
         isAvailable(item);
         checkBookingDates(bookingDto);
-        Booking booking = conversionService.convert(bookingDto, Booking.class);
-        assert booking != null;
+        Booking booking = incomingBookingDtoToBookingConverter.convert(bookingDto);
+        if (booking == null) {
+            throw new NotFoundException(String.format(
+                    "Отсутствуют параметры входящего заказа bookingDto %s ", bookingDto));
+        }
         booking.setBooker(user);
         booking.setItem(item);
         if (getUserType(booking, userId) == OWNER) {
@@ -56,7 +59,7 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
-    public Booking processRequest(Long userId, Long bookingId, Boolean approval) {
+    public Booking processRequest(Long userId, Long bookingId, boolean approval) {
         userService.getById(userId);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(
                 () -> new NotFoundException(String.format(
@@ -66,33 +69,31 @@ public class BookingServiceImp implements BookingService {
                          "Пользователь № %d не является владельцем вещи", userId));
         }
         checkBookingStatus(booking);
-        if (Boolean.TRUE.equals(approval)) {
-            booking.setStatus(Status.APPROVED);
-        } else {
-            booking.setStatus(Status.REJECTED);
-        }
+        booking.setStatus(approval ? APPROVED : REJECTED);
         return bookingRepository.save(booking);
     }
 
     @Override
     public Collection<Booking> getAllByOwner(long userId, String state) {
         userService.getById(userId);
-        if (Arrays.stream(State.values()).map(Enum::name).noneMatch(s -> s.equals(state))) {
+        try {
+            parseState(state);
+        } catch (Exception exception) {
             throw new StateValidationException("Такого параметра не существует " + state);
         }
         switch (State.valueOf(state)) {
             case ALL:
-                return bookingRepository.findByItem_Owner_IdOrderByStartDesc(userId);
+                return bookingRepository.findByItemOwnerIdOrderByStartDesc(userId);
             case PAST:
-                return bookingRepository.findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                return bookingRepository.findByItemOwnerIdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
             case FUTURE:
-                return bookingRepository.findByItem_Owner_IdAndStartIsAfterOrderByStartDesc(userId, LocalDateTime.now());
+                return bookingRepository.findByItemOwnerIdAndStartIsAfterOrderByStartDesc(userId, LocalDateTime.now());
             case CURRENT:
-                return bookingRepository.findCurrentBookingsByOwner_Id(userId, LocalDateTime.now());
+                return bookingRepository.findCurrentBookingsByOwnerId(userId, LocalDateTime.now());
             case WAITING:
-                return bookingRepository.findByItem_Owner_IdAndStatusEqualsOrderByStartDesc(userId, Status.WAITING);
+                return bookingRepository.findByItemOwnerIdAndStatusEqualsOrderByStartDesc(userId, Status.WAITING);
             case REJECTED:
-                return bookingRepository.findByItem_Owner_IdAndStatusEqualsOrderByStartDesc(userId, Status.REJECTED);
+                return bookingRepository.findByItemOwnerIdAndStatusEqualsOrderByStartDesc(userId, REJECTED);
         }
         return Collections.emptyList();
     }
@@ -100,29 +101,31 @@ public class BookingServiceImp implements BookingService {
     @Override
     public Collection<Booking> getAllByBooker(long userId, String state) {
         userService.getById(userId);
-        if (Arrays.stream(State.values()).map(Enum::name).noneMatch(s -> s.equals(state))) {
+        try {
+            parseState(state);
+        } catch (Exception exception) {
             throw new StateValidationException("Такого параметра не существует " + state);
         }
-        switch (State.valueOf(state)) {
-            case ALL:
-                return bookingRepository.findByBooker_IdOrderByStartDesc(userId);
-            case PAST:
-                return bookingRepository.findByBooker_IdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
-            case FUTURE:
-                return bookingRepository.findByBooker_IdAndStartIsAfterOrderByStartDesc(userId, LocalDateTime.now());
-            case CURRENT:
-                return bookingRepository.findCurrentByBooker_Id(userId, LocalDateTime.now());
-            case WAITING:
-                return bookingRepository.findByBooker_IdAndStatusEqualsOrderByStartDesc(userId, Status.WAITING);
-            case REJECTED:
-                return bookingRepository.findByBooker_IdAndStatusEqualsOrderByStartDesc(userId, Status.REJECTED);
-        }
+            switch (State.valueOf(state)) {
+                case ALL:
+                    return bookingRepository.findByBookerIdOrderByStartDesc(userId);
+                case PAST:
+                    return bookingRepository.findByBookerIdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                case FUTURE:
+                    return bookingRepository.findByBookerIdAndStartIsAfterOrderByStartDesc(userId, LocalDateTime.now());
+                case CURRENT:
+                    return bookingRepository.findCurrentByBookerId(userId, LocalDateTime.now());
+                case WAITING:
+                    return bookingRepository.findByBookerIdAndStatusEqualsOrderByStartDesc(userId, Status.WAITING);
+                case REJECTED:
+                    return bookingRepository.findByBookerIdAndStatusEqualsOrderByStartDesc(userId, REJECTED);
+            }
         return Collections.emptyList();
     }
 
     private void isAvailable(Item item) {
-        Boolean isAvailable = item.getAvailable();
-        if (Boolean.FALSE.equals(isAvailable)) {
+        boolean isAvailable = item.getAvailable();
+        if (!isAvailable) {
             throw new NotAvailableException("Предмет недоступен для бронирования в данный момент");
         }
     }
@@ -134,7 +137,7 @@ public class BookingServiceImp implements BookingService {
         }
     }
 
-    private int getUserType(Booking booking, Long userId) {
+    private UserType getUserType(Booking booking, Long userId) {
         Item item = itemService.getById(booking.getItem().getId());
         if (userId.equals(item.getOwner().getId())) {
             return OWNER;
@@ -146,9 +149,13 @@ public class BookingServiceImp implements BookingService {
     }
 
     private void checkBookingDates(IncomingBookingDto incomingBookingDto) {
-        Boolean isStartDateBeforeEnd = incomingBookingDto.getStart().isBefore(incomingBookingDto.getEnd());
-        if (Boolean.FALSE.equals(isStartDateBeforeEnd)) {
+        boolean isStartDateBeforeEnd = incomingBookingDto.getStart().isBefore(incomingBookingDto.getEnd());
+        if (!isStartDateBeforeEnd) {
             throw new ValidationException("Дата окончания бронирования должна быть позже даты начала бронирования.");
         }
+    }
+
+    private State parseState(String value) {
+        return State.valueOf(value);
     }
 }

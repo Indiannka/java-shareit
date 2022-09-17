@@ -1,14 +1,17 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.converter.BookingToBookingDtoConverter;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
-import ru.practicum.shareit.item.dto.CommentDTO;
+import ru.practicum.shareit.item.converter.CommentDtoToCommentConverter;
+import ru.practicum.shareit.item.converter.CommentToCommentDtoConverter;
+import ru.practicum.shareit.item.converter.ItemDtoToItemConverter;
+import ru.practicum.shareit.item.converter.ItemToItemWithBookingsConverter;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookings;
 import ru.practicum.shareit.user.User;
@@ -22,7 +25,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ItemServiceImp implements ItemService {
 
-    private final ConversionService conversionService;
+    private final ItemToItemWithBookingsConverter itemToItemWithBookingsConverter;
+    private final ItemDtoToItemConverter itemDtoToItemConverter;
+    private final CommentDtoToCommentConverter commentDtoToCommentConverter;
+    private final CommentToCommentDtoConverter commentToCommentDtoConverter;
+    private final BookingToBookingDtoConverter bookingToBookingDtoConverter;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final ItemRepository itemRepository;
@@ -31,8 +38,11 @@ public class ItemServiceImp implements ItemService {
     @Override
     public Item create(Long userId, ItemDto itemDto) {
         User user = userService.getById(userId);
-        Item item = conversionService.convert(itemDto, Item.class);
-        assert item != null;
+        Item item = itemDtoToItemConverter.convert(itemDto);
+        if (item == null) {
+            throw new NotFoundException(String.format(
+                    "Отсутствуют параметры входящего объекта itemDto %s ", itemDto));
+        }
         item.setOwner(user);
         return itemRepository.save(item);
     }
@@ -58,7 +68,7 @@ public class ItemServiceImp implements ItemService {
     @Override
     public Collection<ItemWithBookings> getItems(Long userId) {
         Collection<ItemWithBookings> items = itemRepository.findAllByOwnerId(userId).stream()
-                .map(item -> conversionService.convert(item, ItemWithBookings.class))
+                .map(itemToItemWithBookingsConverter::convert)
                 .collect(Collectors.toList());
         for (ItemWithBookings item : items) {
             setBookingsToItem(item);
@@ -76,8 +86,11 @@ public class ItemServiceImp implements ItemService {
     @Override
     public ItemWithBookings getById(Long itemId, Long userId) {
         Item item = getById(itemId);
-        ItemWithBookings itemWithBookingDates = conversionService.convert(item, ItemWithBookings.class);
-        assert itemWithBookingDates != null;
+        ItemWithBookings itemWithBookingDates = itemToItemWithBookingsConverter.convert(item);
+        if (itemWithBookingDates == null) {
+            throw new NotFoundException(String.format(
+                    "Отсутствуют параметры конвертируемого объекта item %s ", item));
+        }
         if (userId.equals(item.getOwner().getId())) {
             setBookingsToItem(itemWithBookingDates);
         }
@@ -94,13 +107,16 @@ public class ItemServiceImp implements ItemService {
     }
 
     @Override
-    public Comment addComment(CommentDTO commentDTO, Long userId, Long itemId) {
+    public Comment addComment(CommentDto commentDTO, Long userId, Long itemId) {
         User user = userService.getById(userId);
         Booking usersBooking = bookingRepository
-                .findFirstByBooker_IdAndItem_IdAndStartIsBefore(userId, itemId, LocalDateTime.now()).orElseThrow(
+                .findFirstByBookerIdAndItemIdAndStartIsBefore(userId, itemId, LocalDateTime.now()).orElseThrow(
                         () -> new ValidationException(String.format("Предмет № %d не найден у пользователя № %d", itemId, userId)));
-        Comment comment = conversionService.convert(commentDTO, Comment.class);
-        assert comment != null;
+        Comment comment = commentDtoToCommentConverter.convert(commentDTO);
+        if (comment == null) {
+            throw new NotFoundException(String.format(
+                    "Отсутствуют параметры входящего объекта commentDTO %s ", commentDTO));
+        }
         comment.setItem(usersBooking.getItem());
         comment.setAuthor(user);
         comment.setCreated(LocalDateTime.now());
@@ -109,16 +125,16 @@ public class ItemServiceImp implements ItemService {
 
     private void setBookingsToItem(ItemWithBookings item) {
         Optional<Booking> lastBooking = bookingRepository
-                .findFirstByItem_IdAndEndIsBeforeOrderByEndDesc(item.getId(), LocalDateTime.now());
+                .findFirstByItemIdAndEndIsBeforeOrderByEndDesc(item.getId(), LocalDateTime.now());
         Optional<Booking> nextBooking = bookingRepository
-                .findFirstByItem_IdAndStartIsAfterOrderByStartAsc(item.getId(), LocalDateTime.now());
-        lastBooking.ifPresent(booking -> item.setLastBooking(conversionService.convert(booking, BookingDto.class)));
-        nextBooking.ifPresent(booking -> item.setNextBooking(conversionService.convert(booking, BookingDto.class)));
+                .findFirstByItemIdAndStartIsAfterOrderByStartAsc(item.getId(), LocalDateTime.now());
+        lastBooking.ifPresent(booking -> item.setLastBooking(bookingToBookingDtoConverter.convert(booking)));
+        nextBooking.ifPresent(booking -> item.setNextBooking(bookingToBookingDtoConverter.convert(booking)));
     }
 
     private void setCommentsToItem(ItemWithBookings item) {
-        List<CommentDTO> comments = commentRepository.findAllByItem_Id(item.getId()).stream()
-                .map(comment -> conversionService.convert(comment, CommentDTO.class))
+        List<CommentDto> comments = commentRepository.findAllByItemId(item.getId()).stream()
+                .map(commentToCommentDtoConverter::convert)
                 .collect(Collectors.toList());
         if (comments.isEmpty()) {
             item.setComments(Collections.emptyList());

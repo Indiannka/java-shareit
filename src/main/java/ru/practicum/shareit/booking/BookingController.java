@@ -2,9 +2,9 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.converter.BookingToIncomingBookingDtoConverter;
 import ru.practicum.shareit.booking.dto.IncomingBookingDto;
 import ru.practicum.shareit.config.Create;
 
@@ -19,17 +19,17 @@ import java.util.Collection;
 @RequestMapping(path = "/bookings")
 public class BookingController {
 
-    private final ConversionService conversionService;
-    private final BookingService bookingService;
-
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+
+    private final BookingService bookingService;
+    private final BookingToIncomingBookingDtoConverter bookingToIncomingBookingDtoConverter;
 
     @PostMapping
     public IncomingBookingDto create(@RequestHeader(USER_ID_HEADER) long userId,
                                      @Validated({Create.class})
                                      @Valid @RequestBody IncomingBookingDto incomingBookingDto) {
         log.info("POST request: добавление бронирования {} пользователем с id {}", incomingBookingDto, userId);
-        return conversionService.convert(bookingService.create(userId, incomingBookingDto), IncomingBookingDto.class);
+        return bookingToIncomingBookingDtoConverter.convert(bookingService.create(userId, incomingBookingDto));
     }
 
     @PatchMapping("/{bookingId}")

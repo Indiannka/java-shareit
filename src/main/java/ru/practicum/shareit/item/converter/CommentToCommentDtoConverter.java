@@ -1,14 +1,16 @@
 package ru.practicum.shareit.item.converter;
 
-import org.springframework.core.convert.converter.Converter;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.Comment;
-import ru.practicum.shareit.item.dto.CommentDTO;
+import ru.practicum.shareit.item.dto.CommentDto;
 
-public class CommentToCommentDtoConverter implements Converter<Comment, CommentDTO> {
+@Component
+@AllArgsConstructor
+public class CommentToCommentDtoConverter {
 
-    @Override
-    public CommentDTO convert(Comment comment) {
-        return CommentDTO.builder()
+    public CommentDto convert(Comment comment) {
+        return CommentDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())
                 .authorName(comment.getAuthor().getName())
