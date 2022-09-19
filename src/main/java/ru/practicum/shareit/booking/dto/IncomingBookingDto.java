@@ -7,6 +7,7 @@ import ru.practicum.shareit.config.Create;
 import ru.practicum.shareit.config.Update;
 
 import javax.validation.constraints.Future;
+import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -22,7 +23,7 @@ public class IncomingBookingDto {
 
 
     @NotNull(groups = {Create.class})
-    @Future
+    @FutureOrPresent
     private LocalDateTime start;
 
     @Future

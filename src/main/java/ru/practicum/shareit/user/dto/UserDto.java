@@ -15,12 +15,10 @@ public class UserDto {
     @NotNull(groups = {Update.class})
     private Long id;
 
-    @NotNull(groups = {Create.class})
     @NotBlank(message = "Поле name не должно быть пустым", groups = {Create.class})
     private String name;
 
     @Email(groups = {Create.class})
-    @NotNull(groups = {Create.class})
     @NotBlank(message = "Поле email не должно быть пустым", groups = {Create.class})
     private String email;
 }

@@ -1,18 +1,22 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.converter.IncomingBookingDtoToBookingConverter;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.converter.BookingConverter;
 import ru.practicum.shareit.booking.dto.IncomingBookingDto;
 import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.item.ItemService;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.booking.Status.APPROVED;
 import static ru.practicum.shareit.booking.Status.REJECTED;
@@ -22,14 +26,16 @@ import static ru.practicum.shareit.booking.UserType.*;
 @RequiredArgsConstructor
 public class BookingServiceImp implements BookingService {
 
-    private final UserService userService;
-    private final ItemService itemService;
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
-    private final IncomingBookingDtoToBookingConverter incomingBookingDtoToBookingConverter;
+    private final BookingConverter bookingConverter;
 
     @Override
+    @Transactional(readOnly = true)
     public Booking getById(Long bookingId, Long userId) {
-        userService.getById(userId);
+        userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(
                 () -> new NotFoundException(String.format("Бронирование № %d не найдено", bookingId)));
         if (getUserType(booking, userId) == OTHER_USER) {
@@ -40,12 +46,15 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking create(Long userId, IncomingBookingDto bookingDto) {
-        User user = userService.getById(userId);
-        Item item = itemService.getById(bookingDto.getItemId());
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
+        Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(
+                () -> new NotFoundException(String.format("Предмет № %d не найден", bookingDto.getItemId())));
         isAvailable(item);
         checkBookingDates(bookingDto);
-        Booking booking = incomingBookingDtoToBookingConverter.convert(bookingDto);
+        Booking booking = bookingConverter.convert(bookingDto);
         if (booking == null) {
             throw new NotFoundException(String.format(
                     "Отсутствуют параметры входящего заказа bookingDto %s ", bookingDto));
@@ -59,8 +68,10 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
+    @Transactional
     public Booking processRequest(Long userId, Long bookingId, boolean approval) {
-        userService.getById(userId);
+        userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(
                 () -> new NotFoundException(String.format(
                         "Бронирование № %d не найдено", bookingId)));
@@ -74,33 +85,39 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
-    public Collection<Booking> getAllByOwner(long userId, String state) {
-        userService.getById(userId);
+    @Transactional(readOnly = true)
+    public Collection<Booking> getAllByOwner(long userId, String state, String[] sortBy) {
+        userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
         try {
             parseState(state);
         } catch (Exception exception) {
             throw new StateValidationException("Такого параметра не существует " + state);
         }
+        Sort sort = setSort(sortBy);
         switch (State.valueOf(state)) {
             case ALL:
-                return bookingRepository.findByItemOwnerIdOrderByStartDesc(userId);
+                return bookingRepository.findByItemOwnerId(userId, sort);
             case PAST:
-                return bookingRepository.findByItemOwnerIdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                return bookingRepository.findByItemOwnerIdAndEndIsBefore(userId, LocalDateTime.now(), sort);
             case FUTURE:
-                return bookingRepository.findByItemOwnerIdAndStartIsAfterOrderByStartDesc(userId, LocalDateTime.now());
+                return bookingRepository.findByItemOwnerIdAndStartIsAfter(userId, LocalDateTime.now(), sort);
             case CURRENT:
-                return bookingRepository.findCurrentBookingsByOwnerId(userId, LocalDateTime.now());
+                return bookingRepository.findCurrentBookingsByOwnerId(userId, LocalDateTime.now(), sort);
             case WAITING:
-                return bookingRepository.findByItemOwnerIdAndStatusEqualsOrderByStartDesc(userId, Status.WAITING);
+                return bookingRepository.findByItemOwnerIdAndStatusEquals(userId, Status.WAITING, sort);
             case REJECTED:
-                return bookingRepository.findByItemOwnerIdAndStatusEqualsOrderByStartDesc(userId, REJECTED);
+                return bookingRepository.findByItemOwnerIdAndStatusEquals(userId, REJECTED, sort);
         }
         return Collections.emptyList();
     }
 
     @Override
-    public Collection<Booking> getAllByBooker(long userId, String state) {
-        userService.getById(userId);
+    @Transactional(readOnly = true)
+    public Collection<Booking> getAllByBooker(long userId, String state, String[] sortBy) {
+        userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
+        Sort sort = setSort(sortBy);
         try {
             parseState(state);
         } catch (Exception exception) {
@@ -108,17 +125,17 @@ public class BookingServiceImp implements BookingService {
         }
             switch (State.valueOf(state)) {
                 case ALL:
-                    return bookingRepository.findByBookerIdOrderByStartDesc(userId);
+                    return bookingRepository.findByBookerId(userId, sort);
                 case PAST:
-                    return bookingRepository.findByBookerIdAndEndIsBeforeOrderByStartDesc(userId, LocalDateTime.now());
+                    return bookingRepository.findByBookerIdAndEndIsBefore(userId, LocalDateTime.now(), sort);
                 case FUTURE:
-                    return bookingRepository.findByBookerIdAndStartIsAfterOrderByStartDesc(userId, LocalDateTime.now());
+                    return bookingRepository.findByBookerIdAndStartIsAfter(userId, LocalDateTime.now(), sort);
                 case CURRENT:
-                    return bookingRepository.findCurrentByBookerId(userId, LocalDateTime.now());
+                    return bookingRepository.findCurrentByBookerId(userId, LocalDateTime.now(), sort);
                 case WAITING:
-                    return bookingRepository.findByBookerIdAndStatusEqualsOrderByStartDesc(userId, Status.WAITING);
+                    return bookingRepository.findByBookerIdAndStatusEquals(userId, Status.WAITING, sort);
                 case REJECTED:
-                    return bookingRepository.findByBookerIdAndStatusEqualsOrderByStartDesc(userId, REJECTED);
+                    return bookingRepository.findByBookerIdAndStatusEquals(userId, REJECTED, sort);
             }
         return Collections.emptyList();
     }
@@ -138,7 +155,8 @@ public class BookingServiceImp implements BookingService {
     }
 
     private UserType getUserType(Booking booking, Long userId) {
-        Item item = itemService.getById(booking.getItem().getId());
+        Item item = itemRepository.findById(booking.getItem().getId()).orElseThrow(
+                () -> new NotFoundException(String.format("Предмет № %d не найден", booking.getItem().getId())));
         if (userId.equals(item.getOwner().getId())) {
             return OWNER;
         }
@@ -157,5 +175,15 @@ public class BookingServiceImp implements BookingService {
 
     private State parseState(String value) {
         return State.valueOf(value);
+    }
+
+    private Sort setSort(String[] sortBy) {
+        return Sort.by(
+                Arrays.stream(sortBy)
+                        .map(s -> s.split(";", 2))
+                        .map(array ->
+                                new Sort.Order(array[1].equalsIgnoreCase("DESC") ?
+                                        Sort.Direction.DESC : Sort.Direction.ASC,array[0]).ignoreCase()
+                        ).collect(Collectors.toList()));
     }
 }

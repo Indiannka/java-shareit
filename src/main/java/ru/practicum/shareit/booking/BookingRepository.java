@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -15,33 +16,31 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Optional<Booking> findFirstByItemIdAndEndIsBeforeOrderByEndDesc(long itemId, LocalDateTime dateTime);
 
-    Collection<Booking> findByBookerIdOrderByStartDesc(Long bookerId);
+    Collection<Booking> findByBookerId(Long bookerId, Sort sort);
 
     @Query("select booking from Booking booking" +
             " where booking.booker.id = ?1" +
             " and booking.start <= ?2" +
-            " and booking.end >= ?2" +
-            " order by booking.start desc")
-    Collection<Booking> findCurrentByBookerId(Long bookerId, LocalDateTime now);
+            " and booking.end >= ?2")
+    Collection<Booking> findCurrentByBookerId(Long bookerId, LocalDateTime now, Sort sort);
 
-    Collection<Booking> findByBookerIdAndStartIsAfterOrderByStartDesc(Long bookerId, LocalDateTime now);
+    Collection<Booking> findByBookerIdAndStartIsAfter(Long bookerId, LocalDateTime now, Sort sort);
 
-    Collection<Booking> findByBookerIdAndEndIsBeforeOrderByStartDesc(Long bookerId, LocalDateTime now);
+    Collection<Booking> findByBookerIdAndEndIsBefore(Long bookerId, LocalDateTime now, Sort sort);
 
-    Collection<Booking> findByBookerIdAndStatusEqualsOrderByStartDesc(Long bookerId, Status status);
+    Collection<Booking> findByBookerIdAndStatusEquals(Long bookerId, Status status, Sort sort);
 
-    Collection<Booking> findByItemOwnerIdOrderByStartDesc(Long ownerId);
+    Collection<Booking> findByItemOwnerId(Long ownerId, Sort sort);
 
     @Query("select booking from Booking booking" +
             " where booking.item.owner.id = ?1" +
             " and booking.start <= ?2" +
-            " and booking.end >= ?2" +
-            " order by booking.start desc")
-    Collection<Booking> findCurrentBookingsByOwnerId(Long ownerId, LocalDateTime now);
+            " and booking.end >= ?2")
+    Collection<Booking> findCurrentBookingsByOwnerId(Long ownerId, LocalDateTime now, Sort sort);
 
-    Collection<Booking> findByItemOwnerIdAndStartIsAfterOrderByStartDesc(Long ownerId, LocalDateTime now);
+    Collection<Booking> findByItemOwnerIdAndStartIsAfter(Long ownerId, LocalDateTime now, Sort sort);
 
-    Collection<Booking> findByItemOwnerIdAndEndIsBeforeOrderByStartDesc(Long ownerId, LocalDateTime now);
+    Collection<Booking> findByItemOwnerIdAndEndIsBefore(Long ownerId, LocalDateTime now, Sort sort);
 
-    Collection<Booking> findByItemOwnerIdAndStatusEqualsOrderByStartDesc(Long bookerId, Status status);
+    Collection<Booking> findByItemOwnerIdAndStatusEquals(Long bookerId, Status status, Sort sort);
 }
