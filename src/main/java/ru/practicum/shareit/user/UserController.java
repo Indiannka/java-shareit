@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.config.Create;
 import ru.practicum.shareit.config.Update;
-import ru.practicum.shareit.user.converter.UserToUserDtoConverter;
+import ru.practicum.shareit.user.converter.UserConverter;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.Collection;
@@ -20,26 +20,26 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserService userService;
-    private final UserToUserDtoConverter userToUserDtoConverter;
+    private final UserConverter userConverter;
 
     @GetMapping
     public Collection<UserDto> getAllUsers() {
         return userService.getAllUsers().stream()
-                .map(userToUserDtoConverter::convert)
+                .map(userConverter::convert)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{userId}")
     public UserDto getById(@PathVariable("userId") long userId) {
         log.info("GET request: запрос пользователя с id {}", userId);
-        return userToUserDtoConverter.convert(userService.getById(userId));
+        return userConverter.convert(userService.getById(userId));
     }
 
     @PostMapping
     public UserDto create(@Validated({Create.class})
                           @RequestBody UserDto userDto) {
         log.info("POST request: создание пользователя {}", userDto.toString());
-        return userToUserDtoConverter.convert(userService.create(userDto));
+        return userConverter.convert(userService.create(userDto));
     }
 
     @PatchMapping("/{userId}")
@@ -47,7 +47,7 @@ public class UserController {
                           @PathVariable ("userId") long userId,
                           @RequestBody UserDto userDto) {
         log.info("PATCH request: обновление пользователя {}, id {}", userDto.toString(), userId);
-        return userToUserDtoConverter.convert(userService.update(userId, userDto));
+        return userConverter.convert(userService.update(userId, userDto));
     }
 
     @DeleteMapping("/{userId}")
