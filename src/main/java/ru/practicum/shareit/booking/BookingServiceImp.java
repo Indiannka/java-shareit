@@ -89,13 +89,14 @@ public class BookingServiceImp implements BookingService {
     public Collection<Booking> getAllByOwner(long userId, String state, String[] sortBy) {
         userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
+        State bookingState;
         try {
-            parseState(state);
+            bookingState = parseState(state);
         } catch (Exception exception) {
             throw new StateValidationException("Такого параметра не существует " + state);
         }
         Sort sort = setSort(sortBy);
-        switch (State.valueOf(state)) {
+        switch (bookingState) {
             case ALL:
                 return bookingRepository.findByItemOwnerId(userId, sort);
             case PAST:
@@ -118,12 +119,13 @@ public class BookingServiceImp implements BookingService {
         userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
         Sort sort = setSort(sortBy);
+        State bookingState;
         try {
-            parseState(state);
+            bookingState = parseState(state);
         } catch (Exception exception) {
             throw new StateValidationException("Такого параметра не существует " + state);
         }
-            switch (State.valueOf(state)) {
+            switch (bookingState) {
                 case ALL:
                     return bookingRepository.findByBookerId(userId, sort);
                 case PAST:
