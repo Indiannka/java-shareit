@@ -12,8 +12,8 @@ public interface BookingService {
 
     Booking processRequest(Long userId, Long bookingId, boolean approval);
 
-    Collection<Booking> getAllByOwner(long userId, String state, String[] sortBy);
+    Collection<Booking> getAllByOwner(long userId, String state, int from, int size, String[] sortBy);
 
-    Collection<Booking> getAllByBooker(long userId, String state, String[] sortBy);
+    Collection<Booking> getAllByBooker(long userId, String state, int from, int size, String[] sortBy);
 }
 

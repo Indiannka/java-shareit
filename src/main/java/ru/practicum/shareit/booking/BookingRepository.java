@@ -1,11 +1,11 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
@@ -16,31 +16,31 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Optional<Booking> findFirstByItemIdAndEndIsBeforeOrderByEndDesc(long itemId, LocalDateTime dateTime);
 
-    Collection<Booking> findByBookerId(Long bookerId, Sort sort);
+    Page<Booking> findByBookerId(Long bookerId, Pageable pageable);
 
     @Query("select booking from Booking booking" +
             " where booking.booker.id = ?1" +
             " and booking.start <= ?2" +
             " and booking.end >= ?2")
-    Collection<Booking> findCurrentByBookerId(Long bookerId, LocalDateTime now, Sort sort);
+    Page<Booking> findCurrentByBookerId(Long bookerId, LocalDateTime now, Pageable pageable);
 
-    Collection<Booking> findByBookerIdAndStartIsAfter(Long bookerId, LocalDateTime now, Sort sort);
+    Page<Booking> findByBookerIdAndStartIsAfter(Long bookerId, LocalDateTime now, Pageable pageable);
 
-    Collection<Booking> findByBookerIdAndEndIsBefore(Long bookerId, LocalDateTime now, Sort sort);
+    Page<Booking> findByBookerIdAndEndIsBefore(Long bookerId, LocalDateTime now, Pageable pageable);
 
-    Collection<Booking> findByBookerIdAndStatusEquals(Long bookerId, Status status, Sort sort);
+    Page<Booking> findByBookerIdAndStatusEquals(Long bookerId, Status status, Pageable pageable);
 
-    Collection<Booking> findByItemOwnerId(Long ownerId, Sort sort);
+    Page<Booking> findByItemOwnerId(Long ownerId, Pageable pageable);
 
     @Query("select booking from Booking booking" +
             " where booking.item.owner.id = ?1" +
             " and booking.start <= ?2" +
             " and booking.end >= ?2")
-    Collection<Booking> findCurrentBookingsByOwnerId(Long ownerId, LocalDateTime now, Sort sort);
+    Page<Booking> findCurrentBookingsByOwnerId(Long ownerId, LocalDateTime now, Pageable pageable);
 
-    Collection<Booking> findByItemOwnerIdAndStartIsAfter(Long ownerId, LocalDateTime now, Sort sort);
+    Page<Booking> findByItemOwnerIdAndStartIsAfter(Long ownerId, LocalDateTime now, Pageable pageable);
 
-    Collection<Booking> findByItemOwnerIdAndEndIsBefore(Long ownerId, LocalDateTime now, Sort sort);
+    Page<Booking> findByItemOwnerIdAndEndIsBefore(Long ownerId, LocalDateTime now, Pageable pageable);
 
-    Collection<Booking> findByItemOwnerIdAndStatusEquals(Long bookerId, Status status, Sort sort);
+    Page<Booking> findByItemOwnerIdAndStatusEquals(Long bookerId, Status status, Pageable pageable);
 }

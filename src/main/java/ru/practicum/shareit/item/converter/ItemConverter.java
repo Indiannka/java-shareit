@@ -6,7 +6,6 @@ import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookings;
 
-
 @Component
 @RequiredArgsConstructor
 public class ItemConverter {
@@ -20,14 +19,18 @@ public class ItemConverter {
     }
 
     public ItemDto convert(Item item) {
-        return ItemDto.builder()
+        ItemDto itemDto;
+        itemDto = ItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .build();
+        if (item.getRequest() != null) {
+            itemDto = itemDto.toBuilder().requestId(item.getRequest().getId()).build();
+        }
+        return itemDto;
     }
-
 
     public ItemWithBookings convertToItemWithBookings(Item item) {
         return ItemWithBookings.builder()
