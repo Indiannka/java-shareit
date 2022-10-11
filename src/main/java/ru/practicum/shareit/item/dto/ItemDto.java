@@ -15,11 +15,9 @@ public class ItemDto {
     @NotNull(groups = {Update.class})
     private Long id;
 
-    @NotNull(groups = {Create.class})
     @NotBlank(message = "Поле name не должно быть пустым", groups = {Create.class})
     private String name;
 
-    @NotNull(groups = {Create.class})
     @NotBlank(message = "Поле description не должно быть пустым", groups = {Create.class})
     private String description;
 

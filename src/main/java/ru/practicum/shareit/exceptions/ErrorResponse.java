@@ -9,12 +9,12 @@ import java.util.List;
 @Setter
 public class ErrorResponse {
 
-    private String message;
+    private String error;
     private List<String> details;
 
     public ErrorResponse(String message, List<String> details) {
         super();
-        this.message = message;
+        this.error = message;
         this.details = details;
     }
 }
