@@ -1,8 +1,6 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -15,8 +13,6 @@ import ru.practicum.shareit.item.converter.ItemConverter;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookings;
-import ru.practicum.shareit.requests.ItemRequest;
-import ru.practicum.shareit.requests.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -35,7 +31,6 @@ public class ItemServiceImp implements ItemService {
     private final CommentRepository commentRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     @Transactional
@@ -44,14 +39,10 @@ public class ItemServiceImp implements ItemService {
                 () -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
         Item item = itemConverter.convert(itemDto);
         if (item == null) {
-            throw new NotFoundException("Отсутствуют параметры входящего объекта itemDto");
+            throw new NotFoundException(String.format(
+                    "Отсутствуют параметры входящего объекта itemDto %s ", itemDto));
         }
         item.setOwner(user);
-        if (itemDto.getRequestId() != null) {
-            ItemRequest itemRequest = itemRequestRepository.findById(itemDto.getRequestId())
-                    .orElseThrow(() -> new NotFoundException(String.format("Запрос на предмеь № %d не найден", itemDto.getRequestId())));
-            item.setRequest(itemRequest);
-        }
         return itemRepository.save(item);
     }
 
@@ -76,10 +67,8 @@ public class ItemServiceImp implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<ItemWithBookings> getItems(Long userId, int from, int size) {
-        int page = from / size;
-        Pageable pageable = PageRequest.of(page, size);
-        Collection<ItemWithBookings> items = itemRepository.findAllByOwnerId(userId, pageable).stream()
+    public Collection<ItemWithBookings> getItems(Long userId) {
+        Collection<ItemWithBookings> items = itemRepository.findAllByOwnerId(userId).stream()
                 .map(itemConverter::convertToItemWithBookings)
                 .collect(Collectors.toList());
         for (ItemWithBookings item : items) {
@@ -102,8 +91,8 @@ public class ItemServiceImp implements ItemService {
         Item item = getById(itemId);
         ItemWithBookings itemWithBookingDates = itemConverter.convertToItemWithBookings(item);
         if (itemWithBookingDates == null) {
-            throw new NotFoundException(
-                    "Отсутствуют параметры конвертируемого объекта item " + item.getId());
+            throw new NotFoundException(String.format(
+                    "Отсутствуют параметры конвертируемого объекта item %s ", item));
         }
         if (userId.equals(item.getOwner().getId())) {
             setBookingsToItem(itemWithBookingDates);
@@ -114,13 +103,11 @@ public class ItemServiceImp implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<Item> searchItems(String text, int from, int size) {
+    public Collection<Item> searchItems(String text) {
         if (text.isBlank()) {
             return new ArrayList<>();
         }
-        int page = from / size;
-        Pageable pageable = PageRequest.of(page, size);
-        return itemRepository.searchItems("%" + text.toLowerCase() + "%", pageable).toList();
+        return List.copyOf(itemRepository.searchItems("%" + text.toLowerCase() + "%"));
     }
 
     @Override
@@ -133,8 +120,8 @@ public class ItemServiceImp implements ItemService {
                         () -> new ValidationException(String.format("Предмет № %d не найден у пользователя № %d", itemId, userId)));
         Comment comment = commentConverter.convert(commentDTO);
         if (comment == null) {
-            throw new NotFoundException(
-                    "Отсутствуют параметры входящего объекта commentDTO " + commentDTO);
+            throw new NotFoundException(String.format(
+                    "Отсутствуют параметры входящего объекта commentDTO %s ", commentDTO));
         }
         comment.setItem(usersBooking.getItem());
         comment.setAuthor(user);

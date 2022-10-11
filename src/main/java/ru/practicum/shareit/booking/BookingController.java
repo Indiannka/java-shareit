@@ -8,7 +8,7 @@ import ru.practicum.shareit.booking.converter.BookingConverter;
 import ru.practicum.shareit.booking.dto.IncomingBookingDto;
 import ru.practicum.shareit.config.Create;
 
-import javax.validation.constraints.Min;
+import javax.validation.Valid;
 import java.util.Collection;
 
 
@@ -27,7 +27,7 @@ public class BookingController {
     @PostMapping
     public IncomingBookingDto create(@RequestHeader(USER_ID_HEADER) long userId,
                                      @Validated({Create.class})
-                                     @RequestBody IncomingBookingDto incomingBookingDto) {
+                                     @Valid @RequestBody IncomingBookingDto incomingBookingDto) {
         log.info("POST request: добавление бронирования {} пользователем с id {}", incomingBookingDto, userId);
         return bookingConverter.convertToIncomingDto(bookingService.create(userId, incomingBookingDto));
     }
@@ -50,22 +50,18 @@ public class BookingController {
     @GetMapping("/owner")
     public Collection<Booking> getAllByOwner(@RequestHeader(USER_ID_HEADER) long userId,
                                              @RequestParam(defaultValue = "ALL", required = false) String state,
-                                             @RequestParam(defaultValue = "0", required = false) @Min(0) int from,
-                                             @RequestParam(defaultValue = "10", required = false) @Min(1) int size,
                                              @RequestParam(value = "sort", defaultValue = "start;DESC",
                                                      required = false) String[] sortBy) {
         log.info("GET request: запрос списка бронирований, владельцем предмета id {} ", userId);
-        return bookingService.getAllByOwner(userId, state, from, size, sortBy);
+        return bookingService.getAllByOwner(userId, state, sortBy);
     }
 
     @GetMapping
     public Collection<Booking> getAllByBooker(@RequestHeader(USER_ID_HEADER) long userId,
                                               @RequestParam(defaultValue = "ALL", required = false) String state,
-                                              @RequestParam(defaultValue = "0", required = false) @Min(0) int from,
-                                              @RequestParam(defaultValue = "10", required = false) @Min(1) int size,
                                               @RequestParam(value = "sort", defaultValue = "start;DESC",
                                                       required = false) String[] sortBy) {
         log.info("GET request: запрос списка бронирований, пользователем id {} ", userId);
-        return bookingService.getAllByBooker(userId, state, from, size, sortBy);
+        return bookingService.getAllByBooker(userId, state, sortBy);
     }
 }

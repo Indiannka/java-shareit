@@ -11,7 +11,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @Entity
-@Builder (toBuilder = true)
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 public class User {

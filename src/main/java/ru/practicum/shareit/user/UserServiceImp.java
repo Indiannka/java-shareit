@@ -29,8 +29,8 @@ public class UserServiceImp implements UserService {
     public User create(UserDto userDto) {
         User user = userConverter.convert(userDto);
         if (user == null) {
-            throw new NotFoundException(
-                    "Отсутствуют параметры входящего объекта userDto " + userDto);
+            throw new NotFoundException(String.format(
+                    "Отсутствуют параметры входящего объекта userDto %s ", userDto));
         }
         return userRepository.save(user);
     }

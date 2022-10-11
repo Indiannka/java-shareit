@@ -12,13 +12,13 @@ public interface ItemService {
 
     Item update(Long userId, Long itemId, ItemDto itemDto);
 
-    Collection<ItemWithBookings> getItems(Long userId, int from, int size);
+    Collection<ItemWithBookings> getItems(Long userId);
 
     ItemWithBookings getById(Long itemId, Long userId);
 
     Item getById(Long itemId);
 
-    Collection<Item> searchItems(String text, int from, int size);
+    Collection<Item> searchItems(String text);
 
     Comment addComment(CommentDto commentDTO, Long userId, Long itemId);
 }

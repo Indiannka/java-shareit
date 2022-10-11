@@ -2,7 +2,6 @@ package ru.practicum.shareit.item;
 
 import lombok.*;
 import org.hibernate.Hibernate;
-import ru.practicum.shareit.requests.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
@@ -11,7 +10,7 @@ import java.util.Objects;
 
 @Table(name = "items")
 @Entity
-@Builder(toBuilder = true)
+@Builder
 @Getter
 @Setter
 @ToString
@@ -37,10 +36,6 @@ public class Item {
     @Size(max = 4000)
     @Column(nullable = false)
     private String description;
-
-    @ManyToOne
-    @JoinColumn(name = "request_id")
-    ItemRequest request;
 
     @Override
     public boolean equals(Object o) {

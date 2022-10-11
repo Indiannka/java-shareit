@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 
 
 @Data
-@Builder(toBuilder = true)
+@Builder
 public class ItemDto {
     @NotNull(groups = {Update.class})
     private Long id;
@@ -23,6 +23,4 @@ public class ItemDto {
 
     @NotNull(groups = {Create.class})
     private Boolean available;
-
-    private Long requestId;
 }
