@@ -1,9 +1,6 @@
 package ru.practicum.shareit.user.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.shareit.config.Create;
 import ru.practicum.shareit.config.Update;
 
@@ -13,8 +10,9 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @Builder
+@EqualsAndHashCode
 @AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class UserDto {
     @NotNull(groups = {Update.class})
     private Long id;

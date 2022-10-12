@@ -8,8 +8,9 @@ import java.util.Collection;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode
 @AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class ItemWithBookings {
     private Long id;
     private String name;

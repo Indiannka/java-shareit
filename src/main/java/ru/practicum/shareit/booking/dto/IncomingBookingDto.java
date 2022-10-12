@@ -1,9 +1,6 @@
 package ru.practicum.shareit.booking.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.config.Create;
 import ru.practicum.shareit.config.Update;
@@ -14,8 +11,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
+@EqualsAndHashCode
 @AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class IncomingBookingDto {
 
     @NotNull(groups = {Update.class})

@@ -19,6 +19,8 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -95,8 +97,8 @@ class UserControllerTest {
     @Test
     @DisplayName("POST create returns user and status 200 Ok")
     void createUserTest() throws Exception {
-        when(userConverter.convert(user)).thenReturn(userDto);
         when(userService.create(userDto)).thenReturn(user);
+        when(userConverter.convert(user)).thenReturn(userDto);
 
         mvc.perform(post("/users")
                         .content(mapper.writeValueAsString(userDto))
@@ -113,7 +115,7 @@ class UserControllerTest {
     @DisplayName("PATCH update returns user and status 200 Ok")
     void updateUserTest() throws Exception {
         when(userConverter.convert(user)).thenReturn(userDto);
-        when(userService.update(1L, userDto)).thenReturn(user);
+        when(userService.update(anyLong(), any())).thenReturn(user);
 
         mvc.perform(patch("/users/1")
                         .content(mapper.writeValueAsString(userDto))
@@ -130,7 +132,7 @@ class UserControllerTest {
     @DisplayName("PATCH update returns NotFoundException and status 404")
     void updateUserReturnsNotFoundExceptionTest() throws Exception {
         when(userConverter.convert(user)).thenReturn(userDto);
-        when(userService.update(10L, userDto)).thenThrow(NotFoundException.class);
+        when(userService.update(anyLong(), any())).thenThrow(NotFoundException.class);
 
         mvc.perform(patch("/users/10")
                         .content(mapper.writeValueAsString(userDto))
