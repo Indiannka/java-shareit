@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.config.Create;
 import ru.practicum.shareit.config.Update;
 
@@ -9,7 +11,9 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 
-@Data
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder(toBuilder = true)
 public class ItemDto {
     @NotNull(groups = {Update.class})

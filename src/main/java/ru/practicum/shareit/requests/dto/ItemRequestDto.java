@@ -1,7 +1,9 @@
 package ru.practicum.shareit.requests.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.config.Create;
 import ru.practicum.shareit.item.dto.ItemDto;
 
@@ -9,8 +11,10 @@ import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Data
+@Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ItemRequestDto {
 
     private Long id;
@@ -18,6 +22,6 @@ public class ItemRequestDto {
     @NotBlank(message = "Поле description не должно быть пустым", groups = {Create.class})
     private String description;
 
-    private final LocalDateTime created;
+    private LocalDateTime created;
     private Set<ItemDto> items;
 }
