@@ -1,18 +1,19 @@
 package ru.practicum.shareit.booking.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.config.Create;
 import ru.practicum.shareit.config.Update;
 
-import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
 @Builder
+@EqualsAndHashCode
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class IncomingBookingDto {
 
     @NotNull(groups = {Update.class})
@@ -23,10 +24,10 @@ public class IncomingBookingDto {
 
 
     @NotNull(groups = {Create.class})
-    @FutureOrPresent
+    @FutureOrPresent(groups = {Create.class})
     private LocalDateTime start;
 
-    @Future
+    @FutureOrPresent(groups = {Create.class})
     @NotNull(groups = {Create.class})
     private LocalDateTime end;
 

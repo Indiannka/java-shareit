@@ -11,6 +11,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookings;
 
+import javax.validation.constraints.Min;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -28,9 +29,11 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public Collection<ItemWithBookings> get(@RequestHeader(USER_ID_HEADER) long userId) {
+    public Collection<ItemWithBookings> get(@RequestHeader(USER_ID_HEADER) long userId,
+                                            @RequestParam(defaultValue = "0", required = false) @Min(0) int from,
+                                            @RequestParam(defaultValue = "10", required = false) @Min(1) int size) {
         log.info("GET request: запрос всех предметов пользователя {}", userId);
-        return itemService.getItems(userId);
+        return itemService.getItems(userId, from, size);
     }
 
     @GetMapping("/{itemId}")
@@ -57,9 +60,11 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> searchItems(@RequestParam String text) {
+    public Collection<ItemDto> searchItems(@RequestParam String text,
+                                           @RequestParam(defaultValue = "0", required = false) @Min(0) int from,
+                                           @RequestParam(defaultValue = "10", required = false) @Min(1) int size) {
         log.info("GET request: поиск предметов по запросу {}", text);
-        return itemService.searchItems(text).stream()
+        return itemService.searchItems(text,from,size).stream()
                 .map(itemConverter::convert)
                 .collect(Collectors.toList());
     }
