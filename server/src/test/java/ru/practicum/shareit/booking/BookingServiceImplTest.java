@@ -287,13 +287,13 @@ class BookingServiceImplTest {
     void getAllCurrentBookingsByOwnerTest() {
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
         State argsState = CURRENT;
-        when(bookingRepository.findCurrentBookingsByOwnerId(anyLong(), any(), any()))
+        when(bookingRepository.findCurrentBookingsByOwner(anyLong(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(new Booking())));
 
         Collection<Booking> bookings = serviceImp.getAllByOwner(1L, argsState.name(), page, size, sortBy);
         assertNotNull(bookings);
         assertEquals(1, bookings.size());
-        verify(bookingRepository, times(1)).findCurrentBookingsByOwnerId(anyLong(), any(), any());
+        verify(bookingRepository, times(1)).findCurrentBookingsByOwner(anyLong(), any(), any());
         verify(userRepository, times(1)).findById(anyLong());
     }
 
@@ -357,13 +357,13 @@ class BookingServiceImplTest {
     void getAllCurrentBookingsByBookerTest() {
         when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
         State argsState = CURRENT;
-        when(bookingRepository.findCurrentByBookerId(anyLong(), any(), any()))
+        when(bookingRepository.findCurrentByBooker(anyLong(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(new Booking())));
 
         Collection<Booking> bookings = serviceImp.getAllByBooker(2L, argsState.name(), page, size, sortBy);
         assertNotNull(bookings);
         assertEquals(1, bookings.size());
-        verify(bookingRepository, times(1)).findCurrentByBookerId(anyLong(), any(), any());
+        verify(bookingRepository, times(1)).findCurrentByBooker(anyLong(), any(), any());
         verify(userRepository, times(1)).findById(anyLong());
     }
 

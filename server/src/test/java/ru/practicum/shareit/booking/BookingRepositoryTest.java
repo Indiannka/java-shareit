@@ -99,7 +99,7 @@ class BookingRepositoryTest {
 
     @Test
     void findCurrentByBookerIdTest() {
-        List<Booking> bookings = bookingRepository.findCurrentByBookerId(booker.getId(),LocalDateTime.now(), pageable).toList();
+        List<Booking> bookings = bookingRepository.findCurrentByBooker(booker.getId(),LocalDateTime.now(), pageable).toList();
         assertEquals(1, bookings.size());
         assertEquals(currentBooking, bookings.get(0));
     }
@@ -134,7 +134,7 @@ class BookingRepositoryTest {
 
     @Test
     void findCurrentBookingsByOwnerIdTest() {
-        List<Booking> bookings = bookingRepository.findCurrentBookingsByOwnerId(owner.getId(), LocalDateTime.now(), pageable).toList();
+        List<Booking> bookings = bookingRepository.findCurrentBookingsByOwner(owner.getId(), LocalDateTime.now(), pageable).toList();
         assertEquals(1, bookings.size());
         assertEquals(currentBooking, bookings.get(0));
     }

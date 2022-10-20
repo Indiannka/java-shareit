@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import ru.practicum.shareit.Status;
 import ru.practicum.shareit.config.Create;
+import ru.practicum.shareit.config.DateRangeMatch;
 import ru.practicum.shareit.config.Update;
 
 import javax.validation.constraints.FutureOrPresent;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @EqualsAndHashCode
 @AllArgsConstructor
+@DateRangeMatch(dateStart = "start", dateEnd = "end", groups = {Create.class})
 public class IncomingBookingDto {
 
     @NotNull(groups = {Update.class})
