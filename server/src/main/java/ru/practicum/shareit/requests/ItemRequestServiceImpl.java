@@ -76,7 +76,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                         .map(s -> s.split(";", 2))
                         .map(array ->
                                 new Sort.Order(array[1].equalsIgnoreCase("DESC") ?
-                                        Sort.Direction.DESC : Sort.Direction.ASC,array[0]).ignoreCase()
+                                        Sort.Direction.DESC : Sort.Direction.ASC,array[0])
                         ).collect(Collectors.toList()));
     }
 }

@@ -109,7 +109,7 @@ public class BookingServiceImp implements BookingService {
             case FUTURE:
                 return bookingRepository.findByItemOwnerIdAndStartIsAfter(userId, LocalDateTime.now(), pageable).toList();
             case CURRENT:
-                return bookingRepository.findCurrentBookingsByOwnerId(userId, LocalDateTime.now(), pageable).toList();
+                return bookingRepository.findCurrentBookingsByOwner(userId, LocalDateTime.now(), pageable).toList();
             case WAITING:
                 return bookingRepository.findByItemOwnerIdAndStatusEquals(userId, Status.WAITING, pageable).toList();
             case REJECTED:
@@ -140,7 +140,7 @@ public class BookingServiceImp implements BookingService {
                 case FUTURE:
                     return bookingRepository.findByBookerIdAndStartIsAfter(userId, LocalDateTime.now(), pageable).toList();
                 case CURRENT:
-                    return bookingRepository.findCurrentByBookerId(userId, LocalDateTime.now(), pageable).toList();
+                    return bookingRepository.findCurrentByBooker(userId, LocalDateTime.now(), pageable).toList();
                 case WAITING:
                     return bookingRepository.findByBookerIdAndStatusEquals(userId, Status.WAITING, pageable).toList();
                 case REJECTED:
@@ -192,7 +192,7 @@ public class BookingServiceImp implements BookingService {
                         .map(s -> s.split(";", 2))
                         .map(array ->
                                 new Sort.Order(array[1].equalsIgnoreCase("DESC") ?
-                                        Sort.Direction.DESC : Sort.Direction.ASC,array[0]).ignoreCase()
+                                        Sort.Direction.DESC : Sort.Direction.ASC,array[0])
                         ).collect(Collectors.toList()));
     }
 }

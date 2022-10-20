@@ -21,8 +21,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("select booking from Booking booking" +
             " where booking.booker.id = ?1" +
-            " and ?2 between booking.start and booking.end")
-    Page<Booking> findCurrentByBookerId(Long bookerId, LocalDateTime now, Pageable pageable);
+            " and booking.start < ?2" +
+            " and booking.end > ?2")
+    Page<Booking> findCurrentByBooker(Long bookerId, LocalDateTime now, Pageable pageable);
 
     Page<Booking> findByBookerIdAndStartIsAfter(Long bookerId, LocalDateTime now, Pageable pageable);
 
@@ -34,8 +35,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("select booking from Booking booking" +
             " where booking.item.owner.id = ?1" +
-            " and ?2 between booking.start and booking.end")
-    Page<Booking> findCurrentBookingsByOwnerId(Long ownerId, LocalDateTime now, Pageable pageable);
+            " and booking.start < ?2" +
+            " and booking.end > ?2")
+    Page<Booking> findCurrentBookingsByOwner(Long ownerId, LocalDateTime now, Pageable pageable);
 
     Page<Booking> findByItemOwnerIdAndStartIsAfter(Long ownerId, LocalDateTime now, Pageable pageable);
 
